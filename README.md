@@ -16,7 +16,7 @@ will of learning a new programming language, I put together a simple animation
 to demonstrate the response of the system for diferent levels of damping.
 
 This project was built using the [Leiningen][leiningen] project automation tool,
-with the `project-clj` template, so these are the only dependencies (though,
+with the `play-clj` template, so these are the only dependencies (though,
 because of the way Leiningen handles dependencies, you probably won't worry
 about it).
 
@@ -44,10 +44,10 @@ folder (as of any Leiningen project, dependencies are downloaded in the first
 run). To compile and generate the `.jar` file, simply run `lein uberjar`.
 
 _Note_: if you change the screen size (variables `screen-dim-x` and
-`screen-dim-y` in `src/vibration_sim/core/desktop_launcher.clj`), you have to
-make sure `src/vibration_sim/core/desktop_launcher.clj` is recompiled. I
-actually don't know how to force it in `lein run`, so I just recompile the whole
-project with `lein uberjar`. Please let me know of a better method.
+`screen-dim-y` defined in `src-common/vibration_sim/core.clj`), you have to make
+sure `src/vibration_sim/core/desktop_launcher.clj` is recompiled. I actually
+don't know how to force it in `lein run`, so I just recompile the whole project
+with `lein uberjar`. Please let me know of a better method.
 
 ## Vibration Modes
 
