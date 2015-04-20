@@ -1,0 +1,5 @@
+(def time 3)
+(def x 3)
+x
+(def x 5)
+x
