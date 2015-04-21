@@ -143,9 +143,9 @@
 ;; contract:
 ;;     (ListOf HashMap) -> (ListOf HashMap)
 (defn- update-label [entities]
-  (for [entity entities]
-    (case (:id entity)
-      :timer-label (doto entity (label! :set-text (format "t = %.1f" (float @time-test))))
+  (for [{:keys [timer-label?] :as entity} entities]
+    (if timer-label?
+      (doto entity (label! :set-text (format "t = %.1f" (float @time-test))))
       entity)))
 
 (defscreen main-screen
@@ -163,7 +163,7 @@
                       :x mass-start-pos-x
                       :y mass-start-pos-y)
           time-count (assoc (label (str @time-test) (color :white))
-                            :id :timer-label
+                            :timer-label? true
                             :x 5)]
       [mass time-count]))
 
