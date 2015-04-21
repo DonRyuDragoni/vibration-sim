@@ -74,7 +74,8 @@ Also, note that pressing any key will reset the time to zero.
   dependencies;
 - [ ] write test functions using expectations and lein-autoexpect;
 - [ ] add forced vibrations and resonance;
-- [ ] make the label at the botton show the current time.
+- [ ] show small marks at previous positions of the mass;
+- [x] make the label at the botton show the current time.
 
 [play-clj]: https://github.com/oakes/play-clj
 [leiningen]: http://leiningen.org/

@@ -100,7 +100,7 @@
 ;; purpose:
 ;;     given an entity, if it is the mass, move it
 ;; contract:
-;;     HashMap -> HashMap
+;;     Function HashMap -> HashMap
 (defn- move-mass [mov_eq {:keys [mass?] :as entity}]
   (if mass?
     (let [old-y (:y entity)
@@ -138,6 +138,16 @@
   (dosync (ref-set time-test (+ @time-test time-interval)))
   nil)
 
+;; purpose:
+;;     updates the timer label at the bottom of the screen
+;; contract:
+;;     (ListOf HashMap) -> (ListOf HashMap)
+(defn- update-label [entities]
+  (for [entity entities]
+    (case (:id entity)
+      :timer-label (doto entity (label! :set-text (format "t = %.1f" (float @time-test))))
+      entity)))
+
 (defscreen main-screen
   :on-show
   (fn [screen entities]
@@ -152,7 +162,9 @@
                       :mass? true
                       :x mass-start-pos-x
                       :y mass-start-pos-y)
-          time-count (assoc (label (str @time-test) (color :white)) :x 5)]
+          time-count (assoc (label (str @time-test) (color :white))
+                            :id :timer-label
+                            :x 5)]
       [mass time-count]))
 
   :on-key-down
@@ -173,7 +185,10 @@
   :on-render
   (fn [screen entities]
     (clear!)
-    (render! screen entities))
+    (->>
+     ;; label update apparently has to be here (in :on-timer does not work)
+     (update-label entities)
+     (render! screen)))
 
   :on-timer
   (fn [screen entities]
