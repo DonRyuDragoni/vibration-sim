@@ -21,6 +21,7 @@ because of the way Leiningen handles dependencies, you probably won't worry
 about it).
 
 Also, please note there are no test functions. This is to be modified later.
+Maybe.
 
 # Usage
 
@@ -74,8 +75,23 @@ Also, note that pressing any key will reset the time to zero.
   dependencies;
 - [ ] write test functions using expectations and lein-autoexpect;
 - [ ] add forced vibrations and resonance;
-- [ ] show small marks at previous positions of the mass;
+- [x] show small marks at previous positions of the mass;
 - [x] make the label at the botton show the current time.
+
+# Changelog
+
+- *1.2.0* 2015-04-21
+    - took a while to figure it out, but we have the timer printed on the
+        screen;
+    - blue dots now follow the mass, showing the plot of the movement equation;
+    - the dots are removed from the animation as soon as they leave the screen;
+    - the dots are also removed with any keypress, so re-starting any animation
+        actually re-starts everything.
+- *1.1.0* 2015-04-20
+    - first working version of the program;
+    - the mass-rectangle-thingy changes movement type with certain keys;
+    - any key resets the time (making restart easier);
+    - resized the window (makes more sense to me as it is).
 
 [play-clj]: https://github.com/oakes/play-clj
 [leiningen]: http://leiningen.org/

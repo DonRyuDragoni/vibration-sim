@@ -109,7 +109,33 @@
     entity))
 
 ;; purpose:
-;;     given a vector of entities, map the movement function to each element
+;;     given an entity, if it is one of the dots, move it a little bit to the right
+;; contract:
+;;     HashMap -> HashMap
+(defn- move-dots [{:keys [dots?] :as entity}]
+  (if dots?
+    (let [old-x (:x entity)
+          new-x (- old-x 1)]
+      (assoc entity :x new-x))
+    entity))
+
+;; purpose:
+;;     given an entity, if it is one of the dots and it passed the left
+;;     "barrier", remove it from the list
+;; contract:
+;;     HashMap -> HashMap
+(defn- remove-dots [entities]
+  (remove #(and (:dots? %) (< (:x %) 10)) entities))
+
+;; purpose:
+;;     given all the entities, remove all the dots from the "game"
+;; contract:
+;;     Sequence -> Sequence
+(defn- remove-all-dots [entities]
+  (remove #(:dots? %) entities))
+
+;; purpose:
+;;     given a vector of entities, map the movement functions to each element
 ;; contract:
 ;;     Sequence -> Sequence
 (defn- move [entities mov-type]
@@ -119,8 +145,11 @@
                  :high-damp msd-high-damp
                  :do-not-move (fn [_] 0)
                  (throw (Exception. "Unexpected movement type.")))]
-    (map #(move-mass mov_eq %) entities)))
-
+    (->>
+     entities
+     (map #(move-mass mov_eq %))
+     (map move-dots)
+     remove-dots)))
 
 ;; purpose:
 ;;     resets the timer
@@ -148,6 +177,20 @@
       (doto entity (label! :set-text (format "t = %.1f" (float @time-test))))
       entity)))
 
+;; purpose:
+;;     spawn a dot marking the current position of the mass
+;; contract:
+;;     Number Number -> HashMap
+(defn- spawn-dot [entities]
+  (for [{:keys [mass?] :as entity} entities]
+    (if mass?
+      (assoc (shape :filled
+                    :set-color (color :blue)
+                    :circle 0 0 2)
+             :dots? true
+             :x (+ (:x entity) (/ rect-width 2))
+             :y (+ (:y entity) (/ rect-height 2))))))
+
 (defscreen main-screen
   :on-show
   (fn [screen entities]
@@ -155,6 +198,7 @@
              :renderer (stage)
              :camera (orthographic))
     (add-timer! screen :update-time 0 time-interval)
+    (add-timer! screen :spawn-dots 0 time-interval)
     (let [mass (assoc (shape :filled
                              :set-color (color :green)
                              ;; start at point 0 0 and move with :x and :y
@@ -178,9 +222,10 @@
       (key-pressed? :h) (dosync (ref-set movement-type :high-damp))
       ;; reset the system to initial position
       (key-pressed? :r) (dosync (ref-set movement-type :do-not-move)))
-    ;; evey time a key is pressed, reset the time
+    ;; evey time a key is pressed, reset the time...
     (reset-time)
-    [screen entities])
+    ;; ... and remove all the dots
+    [screen (remove-all-dots entities)])
   
   :on-render
   (fn [screen entities]
@@ -195,8 +240,10 @@
     (case (:id screen)
       :update-time (do
                      (update-time)
-                     (move entities @movement-type))))
-
+                     (move entities @movement-type))
+      :spawn-dots (conj entities (spawn-dot entities))
+      nil))
+  
   :on-resize
   (fn [screen entities]
     (height! screen screen-dim-y)))
