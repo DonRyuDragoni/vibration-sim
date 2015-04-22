@@ -80,14 +80,14 @@ Also, note that pressing any key will reset the time to zero.
 
 # Changelog
 
-- *1.2.0* 2015-04-21
+- **1.2.0** 2015-04-21
     - took a while to figure it out, but we have the timer printed on the
         screen;
     - blue dots now follow the mass, showing the plot of the movement equation;
     - the dots are removed from the animation as soon as they leave the screen;
     - the dots are also removed with any keypress, so re-starting any animation
         actually re-starts everything.
-- *1.1.0* 2015-04-20
+- **1.1.0** 2015-04-20
     - first working version of the program;
     - the mass-rectangle-thingy changes movement type with certain keys;
     - any key resets the time (making restart easier);
