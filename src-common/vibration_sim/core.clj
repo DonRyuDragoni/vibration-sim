@@ -1,5 +1,6 @@
 (ns vibration-sim.core
-  (:require [play-clj.core :refer :all]
+  (:require [com.climate.claypoole :as cp]
+            [play-clj.core :refer :all]
             [play-clj.math :refer :all]
             [play-clj.ui :refer :all]))
 
@@ -21,6 +22,18 @@
 (def time-test (ref 0))
 ;; oscilation of the mass (starts with none)
 (def movement-type (ref :do-not-move))
+
+;; threadpool with n threads (n = cpus on the machine)
+;; daemon ensures the pool will close on program closing
+(def pool (cp/threadpool (cp/ncpus) :daemon true))
+
+;; purpose:
+;;     exits the program, forcing the threadpool to be killed
+;; contract:
+;;     nil -> nil
+(defn- end-game []
+  (cp/shutdown! pool) ;; force threadpool kill
+  (java.lang.System/exit 0))
 
 ;; purpose:
 ;;     calculate the sine of ang (given in radians)
@@ -101,23 +114,29 @@
 ;;     given an entity, if it is the mass, move it
 ;; contract:
 ;;     Function HashMap -> HashMap
-(defn- move-mass [mov_eq {:keys [mass?] :as entity}]
-  (if mass?
-    (let [old-y (:y entity)
-          new-y (+ mass-start-pos-y (mov_eq @time-test))]
-      (assoc entity :y new-y))
-    entity))
+(defn- move-mass [mov_eq entities]
+  (doall
+   (cp/pfor pool [{:keys [mass?] :as entity} entities]
+            (if mass?
+              (let [old-y (:y entity)
+                    new-y (+ mass-start-pos-y (mov_eq @time-test))]
+                (assoc entity :y new-y))
+              entity))))
 
 ;; purpose:
-;;     given an entity, if it is one of the dots, move it a little bit to the right
+;;     given an entity, if it is one of the dots, move it a little bit to
+;;     the right
 ;; contract:
 ;;     HashMap -> HashMap
-(defn- move-dots [{:keys [dots?] :as entity}]
-  (if dots?
-    (let [old-x (:x entity)
-          new-x (- old-x 1)]
-      (assoc entity :x new-x))
-    entity))
+(defn- move-dots [entities]
+  ;; doall to force all computations before return
+  (doall
+   (cp/pfor pool [{:keys [dots?] :as entity} entities]
+            (if dots?
+              (let [old-x (:x entity)
+                    new-x (- old-x 1)]
+                (assoc entity :x new-x))
+              entity))))
 
 ;; purpose:
 ;;     given an entity, if it is one of the dots and it passed the left
@@ -147,8 +166,8 @@
                  (throw (Exception. "Unexpected movement type.")))]
     (->>
      entities
-     (map #(move-mass mov_eq %))
-     (map move-dots)
+     (move-mass mov_eq)
+     move-dots
      remove-dots)))
 
 ;; purpose:
@@ -214,6 +233,7 @@
   :on-key-down
   (fn [screen entities]
     (cond
+      (key-pressed? :q) (end-game)
       ;; no damping: system oscilates forever
       (key-pressed? :n) (dosync (ref-set movement-type :no-damp))
       ;; low damping: system oscilates losing energy

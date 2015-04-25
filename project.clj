@@ -1,4 +1,4 @@
-(defproject vibration-sim "1.2.0"
+(defproject vibration-sim "1.2.1"
   :description "MSD simulation with simple graphics"
   
   :dependencies [[com.badlogicgames.gdx/gdx "1.5.5"]
@@ -12,6 +12,7 @@
                  [com.badlogicgames.gdx/gdx-platform "1.5.5"
                   :classifier "natives-desktop"]
                  [org.clojure/clojure "1.7.0-alpha5"]
+                 [com.climate/claypoole "1.0.0"]
                  [play-clj "0.4.6"]]
   
   :source-paths ["src" "src-common"]

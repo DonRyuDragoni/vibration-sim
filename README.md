@@ -16,9 +16,9 @@ will of learning a new programming language, I put together a simple animation
 to demonstrate the response of the system for diferent levels of damping.
 
 This project was built using the [Leiningen][leiningen] project automation tool,
-with the `play-clj` template, so these are the only dependencies (though,
-because of the way Leiningen handles dependencies, you probably won't worry
-about it).
+with the `play-clj` template and the [Claypoole][claypoole] library, so these
+are the only dependencies (though, because of the way Leiningen handles
+dependencies, you probably won't worry about it).
 
 Also, please note there are no test functions. This is to be modified later.
 Maybe.
@@ -65,7 +65,8 @@ of the animations, simply press the corresponding key at any time:
 3. <kbd>h</kbd> high-damped system: high damping means the system will not
    oscilate, instead, it will return as fast as possible to the equilibrium
    position;
-4. <kbd>r</kbd> no movement: stops the movement.
+4. <kbd>r</kbd> no movement: stops the movement;
+5. <kbd>q</kbd> quit: exists the program.
 
 Also, note that pressing any key will reset the time to zero.
 
@@ -80,6 +81,10 @@ Also, note that pressing any key will reset the time to zero.
 
 # Changelog
 
+- **1.2.1** 2015-04-25
+    - add claypoole as a dependency;
+    - movement functions now run in parallel;
+    - "q" now kill the threadpool and exits the program.
 - **1.2.0** 2015-04-21
     - took a while to figure it out, but we have the timer printed on the
         screen;
@@ -97,3 +102,4 @@ Also, note that pressing any key will reset the time to zero.
 [leiningen]: http://leiningen.org/
 [expectations]: https://github.com/jaycfields/expectations
 [lein-autoexpect]: https://github.com/jakemcc/lein-autoexpect
+[claypoole]: https://github.com/TheClimateCorporation/claypoole
