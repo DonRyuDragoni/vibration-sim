@@ -14,18 +14,60 @@
 ;; program runs at 60 frames per second (ideally)
 (def ^:const time-interval (/ 1 60))
 ;; start coordinates of the mass (middle of the screen)
-;; since these refer to the lower left corner, 
+;; since these refer to the lower left corner, we need to subtract
+;; from it half the rectangle's dimensions to move it a little to the
+;; right and down
 (def ^:const mass-start-pos-x (- (/ screen-dim-x 2) (/ rect-width 2)))
 (def ^:const mass-start-pos-y (- (/ screen-dim-y 2) (/ rect-height 2)))
 
+;; === References ===
 ;; time-counter (starts at 0s and is updated at :on-timer)
 (def time-test (ref 0))
 ;; oscilation of the mass (starts with none)
 (def movement-type (ref :do-not-move))
 
+;; === Threadpool ===
 ;; threadpool with n threads (n = cpus on the machine)
 ;; daemon ensures the pool will close on program closing
 (def pool (cp/threadpool (cp/ncpus) :daemon true))
+
+;; === Macros ===
+;; purpose:
+;;     calculate the sine of ang (given in radians)
+;; contract:
+;;     Number -> Number
+(defmacro sin [ang]
+  `(Math/sin ~ang))
+
+;; purpose:
+;;     calculate the square root of a number
+;; contract:
+;;     NonNegativeNumber -> Number
+(defmacro sqrt [x]
+  `(Math/sqrt ~x))
+
+;; purpose:
+;;     calculate the x to the nth power
+;; contract:
+;;     Number Number -> Number
+(defmacro pow [x n]
+  `(Math/pow ~x ~n))
+
+;; purpose:
+;;     calculate the square of a number
+;; contract:
+;;     Number -> Number
+(defmacro sqr [x]
+  `(* ~x ~x))
+
+;; purpose:
+;;     calculate the euler number to the nth power
+;; contract:
+;;     Number -> Number
+(defmacro euler [n]
+  `(Math/exp ~n))
+
+;; === Auxiliary functions ===
 
 ;; purpose:
 ;;     exits the program, forcing the threadpool to be killed
@@ -34,41 +76,6 @@
 (defn- end-game []
   (cp/shutdown! pool) ;; force threadpool kill
   (java.lang.System/exit 0))
-
-;; purpose:
-;;     calculate the sine of ang (given in radians)
-;; contract:
-;;     Number -> Number
-(defn- sin [ang]
-  (Math/sin ang))
-
-;; purpose:
-;;     calculate the square root of a number
-;; contract:
-;;     NonNegativeNumber -> Number
-(defn- sqrt [x]
-  (Math/sqrt x))
-
-;; purpose:
-;;     calculate the x to the nth power
-;; contract:
-;;     Number Number -> Number
-(defn- pow [x n]
-  (Math/pow x n))
-
-;; purpose:
-;;     calculate the square of a number
-;; contract:
-;;     Number -> Number
-(defn- sqr [x]
-  (* x x))
-
-;; purpose:
-;;     calculate the euler number to the nth power
-;; contract:
-;;     Number -> Number
-(defn- euler [n]
-  (Math/exp n))
 
 ;; purpose:
 ;;     given the point in time, calculare the displacement of the mass,
@@ -113,7 +120,7 @@
 ;; purpose:
 ;;     given an entity, if it is the mass, move it
 ;; contract:
-;;     Function HashMap -> HashMap
+;;     Function (ListOf HashMap) -> (ListOf HashMap)
 (defn- move-mass [mov_eq entities]
   (doall
    (cp/pfor pool [{:keys [mass?] :as entity} entities]
@@ -127,7 +134,7 @@
 ;;     given an entity, if it is one of the dots, move it a little bit to
 ;;     the right
 ;; contract:
-;;     HashMap -> HashMap
+;;     (ListOf HashMap) -> (ListOf HashMap)
 (defn- move-dots [entities]
   ;; doall to force all computations before return
   (doall
@@ -142,21 +149,21 @@
 ;;     given an entity, if it is one of the dots and it passed the left
 ;;     "barrier", remove it from the list
 ;; contract:
-;;     HashMap -> HashMap
+;;     (ListOf HashMap) -> (ListOf HashMap)
 (defn- remove-dots [entities]
   (remove #(and (:dots? %) (< (:x %) 10)) entities))
 
 ;; purpose:
 ;;     given all the entities, remove all the dots from the "game"
 ;; contract:
-;;     Sequence -> Sequence
+;;     (ListOf HashMap) -> (ListOf HashMap)
 (defn- remove-all-dots [entities]
   (remove #(:dots? %) entities))
 
 ;; purpose:
 ;;     given a vector of entities, map the movement functions to each element
 ;; contract:
-;;     Sequence -> Sequence
+;;     (ListOf HashMap) -> (ListOf HashMap)
 (defn- move [entities mov-type]
   (let [mov_eq (case mov-type
                  :no-damp msd-undamp
@@ -193,13 +200,14 @@
 (defn- update-label [entities]
   (for [{:keys [timer-label?] :as entity} entities]
     (if timer-label?
-      (doto entity (label! :set-text (format "t = %.1f" (float @time-test))))
+      (doto entity
+        (label! :set-text (format "t = %.1f" (float @time-test))))
       entity)))
 
 ;; purpose:
-;;     spawn a dot marking the current position of the mass
+;;     spawns a dot marking the current position of the mass
 ;; contract:
-;;     Number Number -> HashMap
+;;     (ListOf HashMap) -> HashMap
 (defn- spawn-dot [entities]
   (for [{:keys [mass?] :as entity} entities]
     (if mass?
@@ -210,6 +218,7 @@
              :x (+ (:x entity) (/ rect-width 2))
              :y (+ (:y entity) (/ rect-height 2))))))
 
+;; === Game screens ===
 (defscreen main-screen
   :on-show
   (fn [screen entities]
@@ -268,6 +277,7 @@
   (fn [screen entities]
     (height! screen screen-dim-y)))
 
+;; === Game ===
 (defgame vibration-sim-game
   :on-create
   (fn [this]

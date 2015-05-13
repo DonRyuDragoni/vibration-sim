@@ -29,7 +29,7 @@ Simply launch the program (pre-compiled standalone `.jar` lives in the `target/`
 folder), as any Java file
 
 ```
-java -jar path_to_jar_file/vibration-sim-1.1.0-standalone.jar
+java -jar path_to_jar_file/vibration-sim-1.2.2-standalone.jar
 ```
 
 (changing `path_to_jar_file` to the actual path of the downloaded file), and use
@@ -81,6 +81,10 @@ Also, note that pressing any key will reset the time to zero.
 
 # Changelog
 
+- **1.2.2** 2015-05-13
+    - changed some java-based mathematical functions to macros;
+    - corrected some function contracts;
+    - changed some organization of the code.
 - **1.2.1** 2015-04-25
     - add claypoole as a dependency;
     - movement functions now run in parallel;
