@@ -72,12 +72,23 @@ Also, note that pressing any key will reset the time to zero.
 
 # TODOS
 
+## Improvements
+
 - [ ] add [expectations][expectations] and [lein-autoexpect][lein-autoexpect] as
   dependencies;
-- [ ] write test functions using expectations and lein-autoexpect;
+- [ ] write test functions using expectations and lein-autoexpect.
+
+## New features
+
+- [ ] add modifiers for the spring and damper constants, so the
+  program can be run with multiple values;
 - [ ] add forced vibrations and resonance;
 - [x] show small marks at previous positions of the mass;
 - [x] make the label at the botton show the current time.
+
+## Known bugs
+
+No bug is known at the moment.
 
 # Changelog
 
