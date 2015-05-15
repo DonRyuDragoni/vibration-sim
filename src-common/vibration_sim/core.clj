@@ -19,6 +19,10 @@
 ;; right and down
 (def ^:const mass-start-pos-x (- (/ screen-dim-x 2) (/ rect-width 2)))
 (def ^:const mass-start-pos-y (- (/ screen-dim-y 2) (/ rect-height 2)))
+;; size of the spawned dots
+(def ^:const dot-size 2)
+;; distance to move the dots at each step
+(def ^:const dot-dx 1)
 
 ;; === References ===
 ;; time-counter (starts at 0s and is updated at :on-timer)
@@ -141,7 +145,7 @@
    (cp/pfor pool [{:keys [dots?] :as entity} entities]
             (if dots?
               (let [old-x (:x entity)
-                    new-x (- old-x 1)]
+                    new-x (- old-x dot-dx)]
                 (assoc entity :x new-x))
               entity))))
 
@@ -213,7 +217,7 @@
     (if mass?
       (assoc (shape :filled
                     :set-color (color :blue)
-                    :circle 0 0 2)
+                    :circle 0 0 dot-size)
              :dots? true
              :x (+ (:x entity) (/ rect-width 2))
              :y (+ (:y entity) (/ rect-height 2))))))
