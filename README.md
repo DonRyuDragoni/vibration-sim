@@ -1,3 +1,5 @@
+[![Build Status](https://travis-ci.org/DonRyuDragoni/vibration-sim.svg)](https://travis-ci.org/DonRyuDragoni/vibration-sim)
+
 # Mass-Spring-Damper Simulator
 
 In vibration theory, this is the first studied system, for many reasons. This
