@@ -72,22 +72,26 @@ of the animations, simply press the corresponding key at any time:
 
 Also, note that pressing any key will reset the time to zero.
 
+# Bug reports, suggestions, pull requests, ...
+
+Please read CONTRIBUTING.md file.
+
 # TODOS
 
 ## Improvements
 
-- [ ] add [expectations][expectations] and [lein-autoexpect][lein-autoexpect] as
+* [ ] add [expectations][expectations] and [lein-autoexpect][lein-autoexpect] as
     dependencies;
-- [ ] write test functions using expectations and lein-autoexpect.
+* [ ] write test functions using expectations and lein-autoexpect.
 
 ## New features
 
-- [ ] add modifiers for the spring and damper constants, so the
+* [ ] add modifiers for the spring and damper constants, so the
     program can be run with multiple values (text input from the user
     is preferable);
-- [ ] add forced vibrations and resonance;
-- [x] show small marks at previous positions of the mass;
-- [x] make the label at the botton show the current time.
+* [ ] add forced vibrations and resonance;
+* [x] show small marks at previous positions of the mass;
+* [x] make the label at the botton show the current time.
 
 ## Known bugs
 
@@ -95,30 +99,30 @@ No bug is known at the moment.
 
 # Changelog
 
-- **1.2.3** 2015-06-08
-  - corrected line endings of the files;
-  - contrubition instructions;
-  - created development branch.
-- **1.2.2** 2015-05-13
-  - changed some java-based mathematical functions to macros;
-  - corrected some function contracts;
-  - changed some organization of the code.
-- **1.2.1** 2015-04-25
-  - add claypoole as a dependency;
-  - movement functions now run in parallel;
-  - "q" now kill the threadpool and exits the program.
-- **1.2.0** 2015-04-21
-  - took a while to figure it out, but we have the timer printed on the
+* **1.2.3** 2015-06-08
+  * corrected line endings of the files;
+  * contrubition instructions;
+  * created development branch.
+* **1.2.2** 2015-05-13
+  * changed some java-based mathematical functions to macros;
+  * corrected some function contracts;
+  * changed some organization of the code.
+* **1.2.1** 2015-04-25
+  * add claypoole as a dependency;
+  * movement functions now run in parallel;
+  * "q" now kill the threadpool and exits the program.
+* **1.2.0** 2015-04-21
+  * took a while to figure it out, but we have the timer printed on the
       screen;
-  - blue dots now follow the mass, showing the plot of the movement equation;
-  - the dots are removed from the animation as soon as they leave the screen;
-  - the dots are also removed with any keypress, so re-starting any animation
+  * blue dots now follow the mass, showing the plot of the movement equation;
+  * the dots are removed from the animation as soon as they leave the screen;
+  * the dots are also removed with any keypress, so re-starting any animation
       actually re-starts everything.
-- **1.1.0** 2015-04-20
-  - first working version of the program;
-  - the mass-rectangle-thingy changes movement type with certain keys;
-  - any key resets the time (making restart easier);
-  - resized the window (makes more sense to me as it is).
+* **1.1.0** 2015-04-20
+  * first working version of the program;
+  * the mass-rectangle-thingy changes movement type with certain keys;
+  * any key resets the time (making restart easier);
+  * resized the window (makes more sense to me as it is).
 
 [play-clj]: https://github.com/oakes/play-clj
 [leiningen]: http://leiningen.org/

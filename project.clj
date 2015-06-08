@@ -1,4 +1,4 @@
-(defproject vibration-sim "1.2.2"
+(defproject vibration-sim "1.2.3"
   :description "MSD simulation with simple graphics"
   
   :dependencies [[com.badlogicgames.gdx/gdx "1.5.5"]
