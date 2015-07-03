@@ -2,7 +2,9 @@
 
 [![Build Status](https://travis-ci.org/DonRyuDragoni/vibration-sim.svg?branch=master)](https://travis-ci.org/DonRyuDragoni/vibration-sim)
 
-![Animation][msd-animation]
+<p align="center">
+  <img src="https://github.com/DonRyuDragoni/vibration-sim/blob/master/animation.gif?raw=true" alt="Animation"/>
+</p>
 
 In vibration theory, this is the first studied system, for many reasons. This
 system is simple enough for didactic demonstration in classes and complex enough
@@ -129,7 +131,6 @@ No bug is known at the moment.
   * any key resets the time (making restart easier);
   * resized the window (makes more sense to me as it is).
 
-[msd-animation]: https://github.com/DonRyuDragoni/vibration-sim/blob/master/animation.gif
 [play-clj]: https://github.com/oakes/play-clj
 [leiningen]: http://leiningen.org/
 [expectations]: https://github.com/jaycfields/expectations
