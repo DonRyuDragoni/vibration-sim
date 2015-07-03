@@ -2,6 +2,7 @@
   (:require [com.climate.claypoole :as cp]
             [play-clj.core :refer :all]
             [play-clj.math :refer :all]
+            [play-clj.g2d :refer :all]
             [play-clj.ui :refer :all]))
 
 ;; === Constants ===
@@ -240,8 +241,13 @@
                       :y mass-start-pos-y)
           time-count (assoc (label (str @time-test) (color :white))
                             :timer-label? true
-                            :x 5)]
-      [mass time-count]))
+                            :x 5)
+          ;; TODO: faça essa porra funcionar
+          my-button (assoc (image-text-button "I'mma button!" (style :image-text-button nil nil nil (bitmap-font)))
+                        :button? true
+                        :x (- screen-dim-x 20)
+                        :y (- screen-dim-y 20))]
+      [mass time-count my-button]))
 
   :on-key-down
   (fn [screen entities]

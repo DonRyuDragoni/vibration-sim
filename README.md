@@ -2,6 +2,8 @@
 
 [![Build Status](https://travis-ci.org/DonRyuDragoni/vibration-sim.svg?branch=master)](https://travis-ci.org/DonRyuDragoni/vibration-sim)
 
+![Animation][msd-animation]
+
 In vibration theory, this is the first studied system, for many reasons. This
 system is simple enough for didactic demonstration in classes and complex enough
 to show every basic concept needed for advanced studies.
@@ -99,31 +101,35 @@ No bug is known at the moment.
 
 # Changelog
 
-* **1.2.3** 2015-06-08
+* 2015-07-03: **1.2.4**
+  * small correction in the Changelog section of the README.md file;
+  * add a simple animation for demonstration.
+* 2015-06-08: **1.2.3**
   * corrected line endings of the files;
   * contrubition instructions;
   * created development branch.
-* **1.2.2** 2015-05-13
+* 2015-05-13: **1.2.2**
   * changed some java-based mathematical functions to macros;
   * corrected some function contracts;
   * changed some organization of the code.
-* **1.2.1** 2015-04-25
+* 2015-04-25: **1.2.1**
   * add claypoole as a dependency;
   * movement functions now run in parallel;
   * "q" now kill the threadpool and exits the program.
-* **1.2.0** 2015-04-21
+* 2015-04-21: **1.2.0**
   * took a while to figure it out, but we have the timer printed on the
       screen;
   * blue dots now follow the mass, showing the plot of the movement equation;
   * the dots are removed from the animation as soon as they leave the screen;
   * the dots are also removed with any keypress, so re-starting any animation
       actually re-starts everything.
-* **1.1.0** 2015-04-20
+* 2015-04-20: **1.1.0**
   * first working version of the program;
   * the mass-rectangle-thingy changes movement type with certain keys;
   * any key resets the time (making restart easier);
   * resized the window (makes more sense to me as it is).
 
+[msd-animation]: https://github.com/DonRyuDragoni/vibration-sim/blob/master/animation.gif
 [play-clj]: https://github.com/oakes/play-clj
 [leiningen]: http://leiningen.org/
 [expectations]: https://github.com/jaycfields/expectations
