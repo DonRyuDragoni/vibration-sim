@@ -241,13 +241,8 @@
                       :y mass-start-pos-y)
           time-count (assoc (label (str @time-test) (color :white))
                             :timer-label? true
-                            :x 5)
-          ;; TODO: faça essa porra funcionar
-          my-button (assoc (image-text-button "I'mma button!" (style :image-text-button nil nil nil (bitmap-font)))
-                        :button? true
-                        :x (- screen-dim-x 20)
-                        :y (- screen-dim-y 20))]
-      [mass time-count my-button]))
+                            :x 5)]
+      [mass time-count]))
 
   :on-key-down
   (fn [screen entities]
