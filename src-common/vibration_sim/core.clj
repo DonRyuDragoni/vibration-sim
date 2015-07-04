@@ -3,7 +3,10 @@
             [play-clj.core :refer :all]
             [play-clj.math :refer :all]
             [play-clj.g2d :refer :all]
-            [play-clj.ui :refer :all]))
+            [play-clj.ui :refer :all])
+  (:import
+   [com.badlogic.gdx.scenes.scene2d EventListener]
+   [com.badlogic.gdx.scenes.scene2d.utils ClickListener]))
 
 ;; === Constants ===
 ;; screen size
@@ -24,12 +27,23 @@
 (def ^:const dot-size 2)
 ;; distance to move the dots at each step
 (def ^:const dot-dx 1)
+;; UI elements
+;; |_ spring constant
+(def ^:const spring-min-value 1)
+(def ^:const spring-max-value 10)
+(def ^:const spring-step 0.1)
+;; |_ damper constant
+(def ^:const damper-min-value 1)
+(def ^:const damper-max-value 10)
+(def ^:const damper-step 0.1)
 
 ;; === References ===
 ;; time-counter (starts at 0s and is updated at :on-timer)
 (def time-test (ref 0))
 ;; oscilation of the mass (starts with none)
 (def movement-type (ref :do-not-move))
+;; constant for the spring
+(def spring-constant (ref 1))
 
 ;; === Threadpool ===
 ;; threadpool with n threads (n = cpus on the machine)
@@ -223,6 +237,10 @@
              :x (+ (:x entity) (/ rect-width 2))
              :y (+ (:y entity) (/ rect-height 2))))))
 
+(defn- update-constants []
+  (dosync (ref-set spring-constant (+ @spring-constant 1)))
+  nil)
+
 ;; === Game screens ===
 (defscreen main-screen
   :on-show
@@ -241,8 +259,44 @@
                       :y mass-start-pos-y)
           time-count (assoc (label (str @time-test) (color :white))
                             :timer-label? true
-                            :x 5)]
-      [mass time-count]))
+                            :x 5)
+          ui-skin (skin "uiskin.json")
+          spring-proxy (proxy [ClickListener] []
+                         (clicked [& args] (println "spring drag: " args)))
+          damper-proxy (proxy [ClickListener] []
+                         (clicked [& args] (println "damper drag: " args)))
+          table (assoc (table [(label (str "k (" spring-min-value "->" spring-max-value "):") ui-skin)
+                               :row
+                               (slider {:min spring-min-value
+                                        :max spring-max-value
+                                        :step spring-step
+                                        :vertical? false} ui-skin
+                                        :add-listener ^EventListener spring-proxy)
+                               :row
+                               (label (str "c (" damper-min-value "->" damper-max-value "):") ui-skin)
+                               :row
+                               (slider {:min damper-min-value
+                                        :max damper-max-value
+                                        :step damper-step
+                                        :vertical? false} ui-skin
+                                        :add-listener ^EventListener damper-proxy)
+                               :row
+                               (text-button "Apply!" ui-skin)])
+                       :table? true
+                       :x 100
+                       :y 200)]
+      [table mass time-count]))
+
+  :on-ui-changed
+  (fn [screen entities]
+    (let [actor (:actor screen)]
+      (cond
+        (text-button? actor) (println (->
+                                       actor
+                                       (text-button! :get-label)
+                                       (label! :get-text)
+                                       str))
+        (slider? actor) (println (:spring? actor)))));;(slider! actor :get-value)))))
 
   :on-key-down
   (fn [screen entities]

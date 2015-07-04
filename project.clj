@@ -1,4 +1,4 @@
-(defproject vibration-sim "1.2.4"
+(defproject vibration-sim "1.2.5-UNSAFE"
   :description "MSD simulation with simple graphics"
   
   :dependencies [[com.badlogicgames.gdx/gdx "1.6.3"]
