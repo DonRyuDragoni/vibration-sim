@@ -6,7 +6,7 @@
             [play-clj.ui :refer :all])
   (:import
    [com.badlogic.gdx.scenes.scene2d EventListener]
-   [com.badlogic.gdx.scenes.scene2d.utils ClickListener]))
+   [com.badlogic.gdx.scenes.scene2d.utils ClickListener DragListener]))
 
 ;; === Constants ===
 ;; screen size
@@ -36,14 +36,20 @@
 (def ^:const damper-min-value 1)
 (def ^:const damper-max-value 10)
 (def ^:const damper-step 0.1)
+;; error in floating-point comparison
+(def ^:const float-max-error 0.01)
 
 ;; === References ===
 ;; time-counter (starts at 0s and is updated at :on-timer)
 (def time-test (ref 0))
 ;; oscilation of the mass (starts with none)
 (def movement-type (ref :do-not-move))
-;; constant for the spring
+;; constants for the spring and damper
 (def spring-constant (ref 1))
+(def damper-constant (ref 0))
+;; |_ temporary variables
+(def tmp-spring-const (ref 0.1))
+(def tmp-damper-const (ref 0.0))
 
 ;; === Threadpool ===
 ;; threadpool with n threads (n = cpus on the machine)
@@ -195,6 +201,20 @@
      (move-mass mov_eq)
      move-dots
      remove-dots)))
+;; TODO: change the above function to calculate the movement function based on omega_n
+;; (defn- move2 [entities]
+;;   (let [omega_n = (sqrt (/ @spring-constant m))
+;;         mov_eq (case omega_n
+;;                  :no-damp msd-undamp
+;;                  :low-damp msd-low-damp
+;;                  :high-damp msd-high-damp
+;;                  :do-not-move (fn [_] 0)
+;;                  (throw (Exception. "Unexpected movement type.")))]
+;;     (->>
+;;      entities
+;;      (move-mass mov_eq)
+;;      move-dots
+;;      remove-dots)))
 
 ;; purpose:
 ;;     resets the timer
@@ -237,9 +257,28 @@
              :x (+ (:x entity) (/ rect-width 2))
              :y (+ (:y entity) (/ rect-height 2))))))
 
-(defn- update-constants []
-  (dosync (ref-set spring-constant (+ @spring-constant 1)))
-  nil)
+;; purpose:
+;;     compare two floating-point numbers, allowing some error
+;; contract:
+;;     Number Number -> Boolean
+(defn float-== [num1 num2]
+  (and (<= (- num1 float-max-error) num2)
+       (<= num2 (+ num1 float-max-error))))
+
+;; UI actions
+;; |_ buttons
+(defn button-action [b]
+  ;; there is only the "Apply" button, so no need to check
+  ;; (note that the entities are managed in the main-screen :on-ui-changed function, not here!)
+  (dosync (ref-set spring-constant @tmp-spring-const)
+          (ref-set damper-constant @tmp-damper-const)))
+;; |_ sliders
+(defn slider-action [sl]
+  ;; there are two sliders and each refer to direrent things
+  (case (slider! sl :get-name)
+    "spring" (dosync (ref-set tmp-spring-const (slider! sl :get-value))) ;; slider for the spring
+    "damper" (dosync (ref-set tmp-damper-const (slider! sl :get-value))) ;; slider for the damper
+    (throw (Exception. "Unknown slider name."))))                        ;; just in case
 
 ;; === Game screens ===
 (defscreen main-screen
@@ -260,43 +299,50 @@
           time-count (assoc (label (str @time-test) (color :white))
                             :timer-label? true
                             :x 5)
+          ;; skin for the UI elements
           ui-skin (skin "uiskin.json")
-          spring-proxy (proxy [ClickListener] []
-                         (clicked [& args] (println "spring drag: " args)))
-          damper-proxy (proxy [ClickListener] []
-                         (clicked [& args] (println "damper drag: " args)))
-          table (assoc (table [(label (str "k (" spring-min-value "->" spring-max-value "):") ui-skin)
+          table (assoc (table [;; label to identify the element
+                               (label (str "k (" spring-min-value ":"
+                                           spring-step ":"
+                                           spring-max-value "):") ui-skin)
                                :row
+                               ;; slider for user input
                                (slider {:min spring-min-value
                                         :max spring-max-value
                                         :step spring-step
-                                        :vertical? false} ui-skin
-                                        :add-listener ^EventListener spring-proxy)
+                                        :vertical? false}
+                                       ui-skin
+                                       :set-name "spring") ;; name the slider to be able to tell the diference!
                                :row
-                               (label (str "c (" damper-min-value "->" damper-max-value "):") ui-skin)
+                               ;; another label...
+                               (label (str "c (" damper-min-value ":"
+                                           damper-step ":"
+                                           damper-max-value "):") ui-skin)
                                :row
+                               ;; and another slider
                                (slider {:min damper-min-value
                                         :max damper-max-value
                                         :step damper-step
-                                        :vertical? false} ui-skin
-                                        :add-listener ^EventListener damper-proxy)
+                                        :vertical? false}
+                                       ui-skin
+                                       :set-name "damper") ;; again, another name
                                :row
                                (text-button "Apply!" ui-skin)])
                        :table? true
                        :x 100
                        :y 200)]
-      [table mass time-count]))
+      [mass time-count table]))
 
   :on-ui-changed
   (fn [screen entities]
     (let [actor (:actor screen)]
       (cond
-        (text-button? actor) (println (->
-                                       actor
-                                       (text-button! :get-label)
-                                       (label! :get-text)
-                                       str))
-        (slider? actor) (println (:spring? actor)))));;(slider! actor :get-value)))))
+        (text-button? actor) (do (button-action actor)
+                                 (reset-time)
+                                 [screen (remove-all-dots entities)])
+        (slider? actor) (do (slider-action actor)
+                            [screen entities])
+        :else (throw (Exception. "Unknown actor change.")))))
 
   :on-key-down
   (fn [screen entities]

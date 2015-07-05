@@ -1,3 +1,4 @@
 target/classes
 target/stale
 .lein-failures
+.lein-repl-history
