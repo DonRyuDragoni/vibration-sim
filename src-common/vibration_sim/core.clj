@@ -3,10 +3,7 @@
             [play-clj.core :refer :all]
             [play-clj.math :refer :all]
             [play-clj.g2d :refer :all]
-            [play-clj.ui :refer :all])
-  (:import
-   [com.badlogic.gdx.scenes.scene2d EventListener]
-   [com.badlogic.gdx.scenes.scene2d.utils ClickListener DragListener]))
+            [play-clj.ui :refer :all]))
 
 ;; === Constants ===
 ;; screen size
@@ -280,6 +277,14 @@
     "damper" (dosync (ref-set tmp-damper-const (slider! sl :get-value))) ;; slider for the damper
     (throw (Exception. "Unknown slider name."))))                        ;; just in case
 
+;; TODO: PROGRAM IS GETTING SLOWER
+;; number of entities are increasing if we use the slider
+;; dunno what is causing it
+;; => tries failed: :dots?
+;;                  :table?
+(defn test-entities [screen entities]
+  (println (count (filter #(:dots? %) entities))))
+
 ;; === Game screens ===
 (defscreen main-screen
   :on-show
@@ -302,9 +307,9 @@
           ;; skin for the UI elements
           ui-skin (skin "uiskin.json")
           table (assoc (table [;; label to identify the element
-                               (label (str "k (" spring-min-value ":"
-                                           spring-step ":"
-                                           spring-max-value "):") ui-skin)
+                               (label (str "k = " spring-min-value)
+                                      ui-skin
+                                      :set-name "spring-label")
                                :row
                                ;; slider for user input
                                (slider {:min spring-min-value
@@ -315,9 +320,9 @@
                                        :set-name "spring") ;; name the slider to be able to tell the diference!
                                :row
                                ;; another label...
-                               (label (str "c (" damper-min-value ":"
-                                           damper-step ":"
-                                           damper-max-value "):") ui-skin)
+                               (label (str "c = " damper-min-value)
+                                      ui-skin
+                                      :set-name "damper-label")
                                :row
                                ;; and another slider
                                (slider {:min damper-min-value
@@ -341,7 +346,7 @@
                                  (reset-time)
                                  [screen (remove-all-dots entities)])
         (slider? actor) (do (slider-action actor)
-                            [screen entities])
+                            [screen (remove-dots entities)])
         :else (throw (Exception. "Unknown actor change.")))))
 
   :on-key-down
@@ -363,18 +368,18 @@
   
   :on-render
   (fn [screen entities]
+    (test-entities screen entities)
     (clear!)
-    (->>
-     ;; label update apparently has to be here (in :on-timer does not work)
-     (update-label entities)
-     (render! screen)))
+    (render! screen entities))
 
   :on-timer
   (fn [screen entities]
     (case (:id screen)
       :update-time (do
                      (update-time)
-                     (move entities @movement-type))
+                     (-> entities
+                         update-label
+                         (move @movement-type)))
       :spawn-dots (conj entities (spawn-dot entities))
       nil))
   
