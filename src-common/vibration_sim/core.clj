@@ -277,14 +277,6 @@
     "damper" (dosync (ref-set tmp-damper-const (slider! sl :get-value))) ;; slider for the damper
     (throw (Exception. "Unknown slider name."))))                        ;; just in case
 
-;; TODO: PROGRAM IS GETTING SLOWER
-;; number of entities are increasing if we use the slider
-;; dunno what is causing it
-;; => tries failed: :dots?
-;;                  :table?
-(defn test-entities [screen entities]
-  (println (count (filter #(:dots? %) entities))))
-
 ;; === Game screens ===
 (defscreen main-screen
   :on-show
@@ -343,11 +335,10 @@
     (let [actor (:actor screen)]
       (cond
         (text-button? actor) (do (button-action actor)
-                                 (reset-time)
-                                 [screen (remove-all-dots entities)])
-        (slider? actor) (do (slider-action actor)
-                            [screen (remove-dots entities)])
-        :else (throw (Exception. "Unknown actor change.")))))
+                                 (reset-time))
+        (slider? actor) (do (slider-action actor))
+        :else (throw (Exception. "Unknown actor change."))))
+    nil)
 
   :on-key-down
   (fn [screen entities]
@@ -368,7 +359,6 @@
   
   :on-render
   (fn [screen entities]
-    (test-entities screen entities)
     (clear!)
     (render! screen entities))
 
