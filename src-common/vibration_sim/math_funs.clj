@@ -8,36 +8,36 @@
 ;;     calculate the sine of ang (given in radians)
 ;; contract:
 ;;     Number -> Number
-(defmacro sin [ang]
-  `(Math/sin ~ang))
+(defn sin [ang]
+  (Math/sin ang))
 
 ;; purpose:
 ;;     calculate the square root of a number
 ;; contract:
 ;;     NonNegativeNumber -> Number
-(defmacro sqrt [x]
-  `(Math/sqrt ~x))
+(defn sqrt [x]
+  (Math/sqrt x))
 
 ;; purpose:
 ;;     calculate the x to the nth power
 ;; contract:
 ;;     Number Number -> Number
-(defmacro pow [x n]
-  `(Math/pow ~x ~n))
+(defn pow [x n]
+  (Math/pow x n))
 
 ;; purpose:
 ;;     calculate the square of a number
 ;; contract:
 ;;     Number -> Number
-(defmacro sqr [x]
-  `(* ~x ~x))
+(defn sqr [x]
+  (* x ~x))
 
 ;; purpose:
 ;;     calculate the euler number to the nth power
 ;; contract:
 ;;     Number -> Number
-(defmacro euler [n]
-  `(Math/exp ~n))
+(defn euler [n]
+  (Math/exp n))
 
 ;; purpose:
 ;;     compare two floating-point numbers, allowing some error
