@@ -1,5 +1,6 @@
 (ns vibration-sim.core.desktop-launcher
-  (:require [vibration-sim.core :refer :all])
+  (:require [vibration-sim.constants :refer :all]
+            [vibration-sim.core :refer :all])
   (:import [com.badlogic.gdx.backends.lwjgl LwjglApplication]
            [org.lwjgl.input Keyboard])
   (:gen-class))

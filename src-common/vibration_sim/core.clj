@@ -1,42 +1,16 @@
+;; This is the core of the program, where the magic happens.
+
 (ns vibration-sim.core
-  (:require [com.climate.claypoole :as cp]
+  (:require [vibration-sim.constants :refer :all]
+            [vibration-sim.math-mov-eq :refer :all]
+            [com.climate.claypoole :as cp]
             [play-clj.core :refer :all]
             [play-clj.math :refer :all]
             [play-clj.g2d :refer :all]
             [play-clj.ui :refer :all]))
 
-;; === Constants ===
-;; screen size
-(def ^:const screen-dim-x 300)
-(def ^:const screen-dim-y 500)
-;; mass size
-(def ^:const rect-width 100)
-(def ^:const rect-height 70)
-;; program runs at 60 frames per second (ideally)
-(def ^:const time-interval (/ 1 60))
-;; start coordinates of the mass (middle of the screen)
-;; since these refer to the lower left corner, we need to subtract
-;; from it half the rectangle's dimensions to move it a little to the
-;; right and down
-(def ^:const mass-start-pos-x (- (/ screen-dim-x 2) (/ rect-width 2)))
-(def ^:const mass-start-pos-y (- (/ screen-dim-y 2) (/ rect-height 2)))
-;; size of the spawned dots
-(def ^:const dot-size 2)
-;; distance to move the dots at each step
-(def ^:const dot-dx 1)
-;; UI elements
-;; |_ spring constant
-(def ^:const spring-min-value 1)
-(def ^:const spring-max-value 10)
-(def ^:const spring-step 0.1)
-;; |_ damper constant
-(def ^:const damper-min-value 1)
-(def ^:const damper-max-value 10)
-(def ^:const damper-step 0.1)
-;; error in floating-point comparison
-(def ^:const float-max-error 0.01)
-
 ;; === References ===
+
 ;; time-counter (starts at 0s and is updated at :on-timer)
 (def time-test (ref 0))
 ;; oscilation of the mass (starts with none)
@@ -49,45 +23,10 @@
 (def tmp-damper-const (ref 0.0))
 
 ;; === Threadpool ===
+
 ;; threadpool with n threads (n = cpus on the machine)
 ;; daemon ensures the pool will close on program closing
 (def pool (cp/threadpool (cp/ncpus) :daemon true))
-
-;; === Macros ===
-;; purpose:
-;;     calculate the sine of ang (given in radians)
-;; contract:
-;;     Number -> Number
-(defmacro sin [ang]
-  `(Math/sin ~ang))
-
-;; purpose:
-;;     calculate the square root of a number
-;; contract:
-;;     NonNegativeNumber -> Number
-(defmacro sqrt [x]
-  `(Math/sqrt ~x))
-
-;; purpose:
-;;     calculate the x to the nth power
-;; contract:
-;;     Number Number -> Number
-(defmacro pow [x n]
-  `(Math/pow ~x ~n))
-
-;; purpose:
-;;     calculate the square of a number
-;; contract:
-;;     Number -> Number
-(defmacro sqr [x]
-  `(* ~x ~x))
-
-;; purpose:
-;;     calculate the euler number to the nth power
-;; contract:
-;;     Number -> Number
-(defmacro euler [n]
-  `(Math/exp ~n))
 
 ;; === Auxiliary functions ===
 
@@ -98,46 +37,6 @@
 (defn- end-game []
   (cp/shutdown! pool) ;; force threadpool kill
   (java.lang.System/exit 0))
-
-;; purpose:
-;;     given the point in time, calculare the displacement of the mass,
-;;     considering a system with no damping factor
-;; contract:
-;;     Number -> Number
-(defn- msd-undamp [t]
-  (let [amplitude 130
-        spr-const 1
-        mass 0.1]
-    (* amplitude (sin (* (sqrt (/ spr-const mass)) t)))))
-
-;; purpose:
-;;     given the point in time, calculare the displacement of the mass,
-;;     considering a system with little damping
-;; contract:
-;;     Number -> Number
-(defn- msd-low-damp [t]
-  (let [amplitude 150
-        spr-const 1
-        damp-const 0.1
-        mass 0.1
-        omega_n (sqrt (/ spr-const mass))
-        omega_D (* omega_n (sqrt (- 1 (sqr damp-const))))]
-    (* amplitude (euler (* (- damp-const) omega_n t)) (sin (* omega_D t)))))
-
-;; purpose:
-;;     given the point in time, calculare the displacement of the mass,
-;;     considering a system with high damping
-;; contract:
-;;     Number -> Number
-(defn- msd-high-damp [t]
-  (let [amplitude1 50
-        amplitude2 80
-        spr-const 1
-        damp-const 1.1
-        mass 0.1
-        omega_n (sqrt (/ spr-const mass))
-        omega_P (* omega_n (sqrt (- (sqr damp-const) 1)))]
-    (* (euler (* (- damp-const) omega_n t)) (+ (* amplitude1 (euler (* omega_P t))) (* amplitude2 (euler (* (- omega_P) t)))))))
 
 ;; purpose:
 ;;     given an entity, if it is the mass, move it
@@ -253,14 +152,6 @@
              :dots? true
              :x (+ (:x entity) (/ rect-width 2))
              :y (+ (:y entity) (/ rect-height 2))))))
-
-;; purpose:
-;;     compare two floating-point numbers, allowing some error
-;; contract:
-;;     Number Number -> Boolean
-(defn float-== [num1 num2]
-  (and (<= (- num1 float-max-error) num2)
-       (<= num2 (+ num1 float-max-error))))
 
 ;; UI actions
 ;; |_ buttons
