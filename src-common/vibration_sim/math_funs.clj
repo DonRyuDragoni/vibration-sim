@@ -16,7 +16,10 @@
 ;; contract:
 ;;     NonNegativeNumber -> Number
 (defn sqrt [x]
-  (Math/sqrt x))
+  (let [r (Math/sqrt x)]
+    (if (Double/isNaN r)
+      (throw (Exception. "math_funs/sqrt returned NaN"))
+      r)))
 
 ;; purpose:
 ;;     calculate the x to the nth power
@@ -30,7 +33,7 @@
 ;; contract:
 ;;     Number -> Number
 (defn sqr [x]
-  (* x ~x))
+  (* x x))
 
 ;; purpose:
 ;;     calculate the euler number to the nth power
@@ -43,6 +46,6 @@
 ;;     compare two floating-point numbers, allowing some error
 ;; contract:
 ;;     Number Number -> Boolean
-(defn float-== [num1 num2]
+(defn float-= [num1 num2]
   (and (<= (- num1 cnst/float-max-error) num2)
        (<= num2 (+ num1 cnst/float-max-error))))

@@ -90,10 +90,10 @@ Please read CONTRIBUTING.md file.
 
 ## New features
 
-* [ ] add modifiers for the spring and damper constants, so the
+* [ ] add forced vibrations and resonance;
+* [x] add modifiers for the spring and damper constants, so the
     program can be run with multiple values (text input from the user
     is preferable);
-* [ ] add forced vibrations and resonance;
 * [x] show small marks at previous positions of the mass;
 * [x] make the label at the botton show the current time.
 
@@ -103,6 +103,9 @@ No bug is known at the moment.
 
 # Changelog
 
+* 2015-07-16: **1.2.5**
+  * small change in the creation of the sliders;
+  * correction of the movement equations.
 * 2015-07-03: **1.2.4**
   * small correction in the Changelog section of the README.md file;
   * add a simple animation for demonstration.

@@ -3,18 +3,18 @@
 (ns vibration-sim.core
   (:require [vibration-sim.constants :refer :all]
             [vibration-sim.math-mov-eq :refer :all]
+            [vibration-sim.math-funs :refer [sqrt float-=]]
             [com.climate.claypoole :as cp]
             [play-clj.core :refer :all]
             [play-clj.math :refer :all]
             [play-clj.g2d :refer :all]
-            [play-clj.ui :refer :all]))
+            [play-clj.ui :refer :all])
+  (:import [com.badlogic.gdx.scenes.scene2d.ui]))
 
 ;; === References ===
 
 ;; time-counter (starts at 0s and is updated at :on-timer)
 (def time-test (ref 0))
-;; oscilation of the mass (starts with none)
-(def movement-type (ref :do-not-move))
 ;; constants for the spring and damper
 (def spring-constant (ref 1))
 (def damper-constant (ref 0))
@@ -27,6 +27,7 @@
 ;; threadpool with n threads (n = cpus on the machine)
 ;; daemon ensures the pool will close on program closing
 (def pool (cp/threadpool (cp/ncpus) :daemon true))
+(def test-pool (cp/threadpool 1 :daemon true))
 
 ;; === Auxiliary functions ===
 
@@ -36,6 +37,7 @@
 ;;     nil -> nil
 (defn- end-game []
   (cp/shutdown! pool) ;; force threadpool kill
+  (cp/shutdown! test-pool) ;; force threadpool kill
   (java.lang.System/exit 0))
 
 ;; purpose:
@@ -47,7 +49,7 @@
    (cp/pfor pool [{:keys [mass?] :as entity} entities]
             (if mass?
               (let [old-y (:y entity)
-                    new-y (+ mass-start-pos-y (mov_eq @time-test))]
+                    new-y (+ mass-start-pos-y (mov_eq @time-test @spring-constant @damper-constant))]
                 (assoc entity :y new-y))
               entity))))
 
@@ -82,11 +84,23 @@
   (remove #(:dots? %) entities))
 
 ;; purpose:
+;;     find the movement type based on the damper constant
+;; contract:
+;;     nil -> Symbol
+(defn- find-movement-type []
+  (let [xi (/ @damper-constant (sqrt (* 4 mass @spring-constant)))]
+    (cond
+      (float-= @damper-constant 0.0) :no-damp
+      (< xi 1.0) :low-damp
+      (>= xi 1.0) :high-damp
+      :else (throw (Exception. "Unexpected relation in the constants.")))))
+
+;; purpose:
 ;;     given a vector of entities, map the movement functions to each element
 ;; contract:
 ;;     (ListOf HashMap) -> (ListOf HashMap)
-(defn- move [entities mov-type]
-  (let [mov_eq (case mov-type
+(defn- move [entities]
+  (let [mov_eq (case (find-movement-type)
                  :no-damp msd-undamp
                  :low-damp msd-low-damp
                  :high-damp msd-high-damp
@@ -97,28 +111,6 @@
      (move-mass mov_eq)
      move-dots
      remove-dots)))
-;; TODO: change the above function to calculate the movement function based on omega_n
-;; (defn- move2 [entities]
-;;   (let [omega_n = (sqrt (/ @spring-constant m))
-;;         mov_eq (case omega_n
-;;                  :no-damp msd-undamp
-;;                  :low-damp msd-low-damp
-;;                  :high-damp msd-high-damp
-;;                  :do-not-move (fn [_] 0)
-;;                  (throw (Exception. "Unexpected movement type.")))]
-;;     (->>
-;;      entities
-;;      (move-mass mov_eq)
-;;      move-dots
-;;      remove-dots)))
-
-;; purpose:
-;;     resets the timer
-;; contract:
-;;     nil -> nil
-(defn- reset-time []
-  (dosync (ref-set time-test 0))
-  nil)
 
 ;; purpose:
 ;;     updates the time counter by one unit of time-interval
@@ -153,20 +145,64 @@
              :x (+ (:x entity) (/ rect-width 2))
              :y (+ (:y entity) (/ rect-height 2))))))
 
+;; purpose:
+;;     resets the game to initial state
+;; contract:
+;;     (ListOf HashMap) (ListOf HashMap) -> (ListOf HashMap) (ListOf HashMap)
+(defn- reset-game [entities]
+  (dosync (ref-set time-test 0))
+  (remove-all-dots entities))
+
 ;; UI actions
 ;; |_ buttons
-(defn button-action [b]
-  ;; there is only the "Apply" button, so no need to check
-  ;; (note that the entities are managed in the main-screen :on-ui-changed function, not here!)
-  (dosync (ref-set spring-constant @tmp-spring-const)
-          (ref-set damper-constant @tmp-damper-const)))
+(defn button-action [b entities]
+  (case (text-button! b :get-name)
+    "apply" (dosync (ref-set spring-constant @tmp-spring-const)
+                    (ref-set damper-constant @tmp-damper-const))
+    (throw (Exception. "Unknown button name.")))
+  (reset-game entities))
 ;; |_ sliders
-(defn slider-action [sl]
+(defn slider-action [sl entities]
   ;; there are two sliders and each refer to direrent things
   (case (slider! sl :get-name)
-    "spring" (dosync (ref-set tmp-spring-const (slider! sl :get-value))) ;; slider for the spring
-    "damper" (dosync (ref-set tmp-damper-const (slider! sl :get-value))) ;; slider for the damper
-    (throw (Exception. "Unknown slider name."))))                        ;; just in case
+    "spring" (do
+               ;; update the temporary variable...
+               (dosync (ref-set tmp-spring-const (slider! sl :get-value)))
+               ;; ... and the label
+               (doall
+                (cp/pfor test-pool [{:keys [table?] :as entity} entities
+                                    cell (if table?
+                                           (table! entity :get-cells)
+                                           nil)]
+                         (if cell
+                           (let [actor (.getActor cell)]
+                             (if (and (label? actor) (= (label! actor :get-name) "spring-label"))
+                               (label! actor :set-text (format (str "k = " spring-format) (float @tmp-spring-const)))
+                               nil))
+                           nil)))
+               entities)
+    "damper" (do
+               ;; again, update the temporary variable...
+               (dosync (ref-set tmp-damper-const (slider! sl :get-value)))
+               ;; ... and the label
+               (doall
+                (cp/pfor test-pool [{:keys [table?] :as entity} entities
+                                    cell (if table?
+                                           (table! entity :get-cells)
+                                           nil)]
+                         (if cell
+                           (let [actor (.getActor cell)]
+                             (if (and (label? actor) (= (label! actor :get-name) "damper-label"))
+                               (label! actor :set-text (format (str "c = " damper-format) (float @tmp-damper-const)))
+                               nil))
+                           nil)))
+               entities)
+    ;; and, just in case
+    (throw (Exception. "Unknown slider name.")))
+  entities)
+
+(defn debug-program [screen entities]
+  entities)
 
 ;; === Game screens ===
 (defscreen main-screen
@@ -189,33 +225,36 @@
                             :x 5)
           ;; skin for the UI elements
           ui-skin (skin "uiskin.json")
-          table (assoc (table [;; label to identify the element
-                               (label (str "k = " spring-min-value)
-                                      ui-skin
-                                      :set-name "spring-label")
-                               :row
-                               ;; slider for user input
-                               (slider {:min spring-min-value
-                                        :max spring-max-value
-                                        :step spring-step
-                                        :vertical? false}
-                                       ui-skin
-                                       :set-name "spring") ;; name the slider to be able to tell the diference!
-                               :row
-                               ;; another label...
-                               (label (str "c = " damper-min-value)
-                                      ui-skin
-                                      :set-name "damper-label")
-                               :row
-                               ;; and another slider
-                               (slider {:min damper-min-value
-                                        :max damper-max-value
-                                        :step damper-step
-                                        :vertical? false}
-                                       ui-skin
-                                       :set-name "damper") ;; again, another name
-                               :row
-                               (text-button "Apply!" ui-skin)])
+          ;; create the table
+          tbl (table [;; label to identify the element
+                      (label (str "k = " (format spring-format spring-min-value))
+                             ui-skin
+                               :set-name "spring-label")
+                      :row
+                      ;; slider for user input
+                      (slider {:min spring-min-value
+                               :max spring-max-value
+                               :step spring-step
+                               :vertical? false}
+                              ui-skin
+                              :set-name "spring") ;; name the slider to be able to tell the diference!
+                      :row
+                      ;; another label...
+                      (label (str "c = " (format damper-format damper-min-value))
+                             ui-skin
+                             :set-name "damper-label")
+                      :row
+                      ;; and another slider
+                      (slider {:min damper-min-value
+                               :max damper-max-value
+                               :step damper-step
+                               :vertical? false}
+                              ui-skin
+                              :set-name "damper") ;; again, another name
+                      :row
+                      (text-button "Apply" ui-skin :set-name "apply")])
+          ;; and assoc it with its position
+          table (assoc tbl
                        :table? true
                        :x 100
                        :y 200)]
@@ -225,31 +264,20 @@
   (fn [screen entities]
     (let [actor (:actor screen)]
       (cond
-        (text-button? actor) (do (button-action actor)
-                                 (reset-time))
-        (slider? actor) (do (slider-action actor))
-        :else (throw (Exception. "Unknown actor change."))))
-    nil)
+        (text-button? actor) (do (button-action actor entities))
+        (slider? actor) (do (slider-action actor entities))
+        :else (throw (Exception. "Unknown actor change.")))))
 
   :on-key-down
   (fn [screen entities]
     (cond
-      (key-pressed? :q) (end-game)
-      ;; no damping: system oscilates forever
-      (key-pressed? :n) (dosync (ref-set movement-type :no-damp))
-      ;; low damping: system oscilates losing energy
-      (key-pressed? :l) (dosync (ref-set movement-type :low-damp))
-      ;; high damping: system do not oscilate
-      (key-pressed? :h) (dosync (ref-set movement-type :high-damp))
-      ;; reset the system to initial position
-      (key-pressed? :r) (dosync (ref-set movement-type :do-not-move)))
-    ;; evey time a key is pressed, reset the time...
-    (reset-time)
-    ;; ... and remove all the dots
-    [screen (remove-all-dots entities)])
+      (key-pressed? :q) (end-game))
+    ;; every time a key is pressed, restart the animation
+    (reset-game entities))
   
   :on-render
   (fn [screen entities]
+    (debug-program screen entities)
     (clear!)
     (render! screen entities))
 
@@ -260,7 +288,7 @@
                      (update-time)
                      (-> entities
                          update-label
-                         (move @movement-type)))
+                         move))
       :spawn-dots (conj entities (spawn-dot entities))
       nil))
   

@@ -27,14 +27,21 @@
 (def ^:const dot-dx 1)
 
 ;; UI elements
+;; |_ mass
+(def ^:const mass 1.0)
 ;; |_ spring constant
-(def ^:const spring-min-value 1)
-(def ^:const spring-max-value 10)
+(def ^:const spring-min-value 1.0)
+(def ^:const spring-max-value 5.0)
 (def ^:const spring-step 0.1)
+(def ^:const spring-format "%.1f")
 ;; |_ damper constant
-(def ^:const damper-min-value 1)
-(def ^:const damper-max-value 10)
+(def ^:const damper-min-value 0.0)
+(def ^:const damper-max-value 5.0)
 (def ^:const damper-step 0.1)
+(def ^:const damper-format "%.1f")
 
 ;; error in floating-point comparison
 (def ^:const float-max-error 0.01)
+
+;; amplitude for the movement equations
+(def ^:const amp 100)

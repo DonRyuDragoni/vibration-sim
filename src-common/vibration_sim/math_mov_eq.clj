@@ -6,17 +6,16 @@
 ;;     3. high damp  -> no oscilation
 
 (ns vibration-sim.math-mov-eq
-  (:require [vibration-sim.math-funs :as mfuns]))
+  (:require [vibration-sim.math-funs :as mfuns]
+            [vibration-sim.constants :refer :all]))
 
 ;; purpose:
 ;;     given the point in time, calculare the displacement of the mass,
 ;;     considering a system with no damping factor
 ;; contract:
 ;;     Number -> Number
-(defn msd-undamp [t]
-  (let [amplitude 130
-        spr-const 1
-        mass 0.1]
+(defn msd-undamp [t spr-const damp-const]
+  (let [amplitude amp]
     (* amplitude (mfuns/sin (* (mfuns/sqrt (/ spr-const mass)) t)))))
 
 ;; purpose:
@@ -24,14 +23,12 @@
 ;;     considering a system with little damping
 ;; contract:
 ;;     Number -> Number
-(defn msd-low-damp [t]
-  (let [amplitude 150
-        spr-const 1
-        damp-const 0.1
-        mass 0.1
+(defn msd-low-damp [t spr-const damp-const]
+  (let [amplitude amp
+        xi (/ damp-const (mfuns/sqrt (* 4 mass spr-const)))
         omega_n (mfuns/sqrt (/ spr-const mass))
-        omega_D (* omega_n (mfuns/sqrt (- 1 (mfuns/sqr damp-const))))]
-    (* amplitude (mfuns/euler (* (- damp-const) omega_n t))
+        omega_D (* omega_n (mfuns/sqrt (- 1 (mfuns/sqr xi))))]
+    (* amplitude (mfuns/euler (* (- xi) omega_n t))
        (mfuns/sin (* omega_D t)))))
 
 ;; purpose:
@@ -39,14 +36,12 @@
 ;;     considering a system with high damping
 ;; contract:
 ;;     Number -> Number
-(defn msd-high-damp [t]
-  (let [amplitude1 50
-        amplitude2 80
-        spr-const 1
-        damp-const 1.1
-        mass 0.1
+(defn msd-high-damp [t spr-const damp-const]
+  (let [amplitude1 amp
+        amplitude2 amp
+        xi (/ damp-const (mfuns/sqrt (* 4 mass spr-const)))
         omega_n (mfuns/sqrt (/ spr-const mass))
-        omega_P (* omega_n (mfuns/sqrt (- (mfuns/sqr damp-const) 1)))]
-    (* (mfuns/euler (* (- damp-const) omega_n t))
+        omega_P (* omega_n (mfuns/sqrt (- (mfuns/sqr xi) 1)))]
+    (* (mfuns/euler (* (- xi) omega_n t))
        (+ (* amplitude1 (mfuns/euler (* omega_P t)))
           (* amplitude2 (mfuns/euler (* (- omega_P) t)))))))
