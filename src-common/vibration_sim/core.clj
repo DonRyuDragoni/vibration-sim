@@ -16,11 +16,11 @@
 ;; time-counter (starts at 0s and is updated at :on-timer)
 (def time-test (ref 0))
 ;; constants for the spring and damper
-(def spring-constant (ref 1))
-(def damper-constant (ref 0))
+(def spring-constant (ref 1.0))
+(def damper-constant (ref 0.0))
 ;; |_ temporary variables
-(def tmp-spring-const (ref 0.1))
-(def tmp-damper-const (ref 0.0))
+(def tmp-spring-const (ref @spring-constant))
+(def tmp-damper-const (ref @damper-constant))
 
 ;; === Threadpool ===
 
@@ -256,8 +256,8 @@
           ;; and assoc it with its position
           table (assoc tbl
                        :table? true
-                       :x 100
-                       :y 200)]
+                       :x (- screen-dim-x (/ (table! tbl :get-min-width) 2))
+                       :y (- screen-dim-y (/ (table! tbl :get-min-height) 2)))]
       [mass time-count table]))
 
   :on-ui-changed
