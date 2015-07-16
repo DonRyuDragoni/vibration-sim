@@ -27,7 +27,6 @@
 ;; threadpool with n threads (n = cpus on the machine)
 ;; daemon ensures the pool will close on program closing
 (def pool (cp/threadpool (cp/ncpus) :daemon true))
-(def test-pool (cp/threadpool 1 :daemon true))
 
 ;; === Auxiliary functions ===
 
@@ -37,7 +36,6 @@
 ;;     nil -> nil
 (defn- end-game []
   (cp/shutdown! pool) ;; force threadpool kill
-  (cp/shutdown! test-pool) ;; force threadpool kill
   (java.lang.System/exit 0))
 
 ;; purpose:
@@ -170,7 +168,7 @@
                (dosync (ref-set tmp-spring-const (slider! sl :get-value)))
                ;; ... and the label
                (doall
-                (cp/pfor test-pool [{:keys [table?] :as entity} entities
+                (cp/pfor pool [{:keys [table?] :as entity} entities
                                     cell (if table?
                                            (table! entity :get-cells)
                                            nil)]
@@ -186,7 +184,7 @@
                (dosync (ref-set tmp-damper-const (slider! sl :get-value)))
                ;; ... and the label
                (doall
-                (cp/pfor test-pool [{:keys [table?] :as entity} entities
+                (cp/pfor pool [{:keys [table?] :as entity} entities
                                     cell (if table?
                                            (table! entity :get-cells)
                                            nil)]
