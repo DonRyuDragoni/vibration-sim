@@ -31,6 +31,8 @@ Maybe.
 
 # Usage
 
+## Running The Program
+
 Simply launch the program (pre-compiled standalone `.jar` lives in the `target/`
 folder), as any Java file
 
@@ -51,32 +53,35 @@ folder (as of any Leiningen project, dependencies are downloaded in the first
 run). To compile and generate the `.jar` file, simply run `lein uberjar`.
 
 _Note_: if you change the screen size (variables `screen-dim-x` and
-`screen-dim-y` defined in `src-common/vibration_sim/core.clj`), you have to make
-sure `src/vibration_sim/core/desktop_launcher.clj` is recompiled. I actually
-don't know how to force it in `lein run`, so I just recompile the whole project
-with `lein uberjar`. Please let me know of a better method.
+`screen-dim-y` defined in `src-common/vibration_sim/constants.clj`), you have to
+make sure `src/vibration_sim/core/desktop_launcher.clj` is recompiled. I
+actually don't know how to force it in `lein run`, so I just recompile the whole
+project with `lein uberjar`. Please let me know of a better method.
 
 ## Vibration Modes
 
 This simulation presents an animated representation for the really basic MSD
-responses, assuming the system is not affected by external forces. To start any
-of the animations, simply press the corresponding key at any time:
+responses, assuming the system is not affected by external forces. The program
+will automatically decide wich function to use based on the input given by the
+user. The possibilities are:
 
-1. <kbd>n</kbd> undamped system: the system is reduced to the mass-spring, in
+1. *undamped system*: the system is reduced to the mass-spring, in
     which the mass oscilates forever, and amplitude of the movemnt remains
     constant;
-2. <kbd>l</kbd> low-damped system: damping means the system will lose energy
+2. *low-damped system*: damping means the system will lose energy
     over time, so the mass will oscilate, but its amplitude will reduce over
     time, untill the system comes to a stop;
-3. <kbd>h</kbd> high-damped system: high damping means the system will not
+3. *high-damped system*: high damping means the system will not
     oscilate, instead, it will return as fast as possible to the equilibrium
-    position;
-4. <kbd>r</kbd> no movement: stops the movement;
-5. <kbd>q</kbd> quit: exists the program.
+    position.
 
-Also, note that pressing any key will reset the time to zero.
+To quit the program, there is also the <kbd>q</kbd> shortcut.
 
-# Bug reports, suggestions, pull requests, ...
+Also, note that pressing any key (except <kbd>q</kbd>, of course) will reset the
+time to zero, thus restarting the animation with the previous data. To start the
+animation with the new values, simply press the helpfull <kbd>Apply</kbd> button.
+
+# Bug Reports, Suggestions, Pull Requests, ...
 
 Please read CONTRIBUTING.md file.
 
@@ -90,7 +95,9 @@ Please read CONTRIBUTING.md file.
 
 ## New features
 
+* [ ] adjust the sliders range and step for better animations;
 * [ ] add forced vibrations and resonance;
+* [ ] adjust the pressed button image;
 * [x] add modifiers for the spring and damper constants, so the
     program can be run with multiple values (text input from the user
     is preferable);
@@ -103,9 +110,11 @@ No bug is known at the moment.
 
 # Changelog
 
-* 2015-07-16: **1.2.5**
+* 2015-07-16: **2.0.0**
   * small change in the creation of the sliders;
-  * correction of the movement equations.
+  * correction of the movement equations;
+  * correction of the table (sliders/labels/buttons) location;
+  * changed documentation to reflect the new functionality.
 * 2015-07-03: **1.2.4**
   * small correction in the Changelog section of the README.md file;
   * add a simple animation for demonstration.
